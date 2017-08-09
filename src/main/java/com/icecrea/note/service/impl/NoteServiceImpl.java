@@ -139,4 +139,23 @@ public class NoteServiceImpl implements NoteService {
 
 		return n == 1;
 	}
+	
+	public boolean deleteNote(String noteId) throws NoteNotFoundException {
+	    if(noteId==null || noteId.trim().isEmpty()){
+	        throw new NoteNotFoundException("ID不能空");
+	    }
+	    Note note = noteDao.findNoteById(noteId);
+	    if(note==null){
+	        throw new NoteNotFoundException("没有对应的笔记");
+	    } 
+
+	    Note data = new Note();
+	    data.setId(noteId);
+	    data.setStatusId("0");
+	    data.setLastModifyTime(System.currentTimeMillis());
+
+	    int n = noteDao.updateNote(data);
+
+	    return n==1;
+	}
 }

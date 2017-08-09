@@ -22,4 +22,7 @@ public interface NoteService {
 	 
 	 boolean moveNote(String noteId,String notebookId)
 	 			throws NoteNotFoundException,NotebookNotFoundException;
+	 
+	 boolean deleteNote(String noteId)
+			    throws NoteNotFoundException;
 }

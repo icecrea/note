@@ -23,6 +23,10 @@ $(function(){
 	$('#note-list').on('click', '.btn_move', showMoveNoteDialog);
 	//监听移动笔记对话框中的确定按钮
 	$('#can').on('click', '.move-note', moveNote);
+	//监听笔记子菜单中删除按钮的点击
+	$('#note-list').on('click', '.btn_delete', showDeleteNoteDialog);
+	//监听删除笔记对话框中的确定按钮 
+	$('#can').on('click', '.delete-note', deleteNote);
 });
 
 /** 加载笔记本列表数据 */
@@ -315,6 +319,44 @@ function moveNote(){
         }
     });
 }
+
+/** 打开删除笔记对话框 */
+function showDeleteNoteDialog(){
+    var id = $(document).data('note').id;
+    if(id){
+        $('#can').load('alert/alert_delete_note.html', loadNotebookOptions);
+        $('.opacity_bg').show();
+        return;
+    }
+    alert('必须选择笔记!');
+}
+
+/** 删除笔记功能 */
+function deleteNote(){
+    var url = 'note/delete.do';
+    var id = $(document).data('note').id;
+    var data = {noteId:id};
+    $.post(url, data, function(result){
+        if(result.state==SUCCESS){
+            //删除成功, 在当前笔记列表中删除笔记
+            //将笔记列表中的第一个设置为当前笔记, 否则清空边编辑区域
+            var li = $('#note-list .checked').parent();
+            var lis = li.siblings();
+            if(lis.size()>0){
+                lis.eq(0).click();
+            }else{
+                $('#input_note_title').val("");
+                um.setContent("");
+            }
+            li.remove();
+            closeDialog();//关闭对话框!
+        }else{
+            alert(result.message);
+        }
+    });
+
+}
+
 
 //重构笔记列表模板, 为笔记子菜单触发按钮添加类 btn-note-menu
 var noteTemplate = '<li class="online note">'+

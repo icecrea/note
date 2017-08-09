@@ -55,4 +55,11 @@ public class NoteController extends AbstractController{
          boolean success = noteService.moveNote(noteId, notebookId);
          return new JsonResult(success);
      }
+     
+     @RequestMapping("/delete.do")
+     @ResponseBody
+     public JsonResult delete(String noteId) {
+         boolean b = noteService.deleteNote(noteId);
+         return new JsonResult(b);
+     }
 }
