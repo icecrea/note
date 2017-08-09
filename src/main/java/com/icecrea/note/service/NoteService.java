@@ -19,4 +19,7 @@ public interface NoteService {
 	 
 	 boolean update(String noteId, String title, String body)
 			    throws NoteNotFoundException;
+	 
+	 boolean moveNote(String noteId,String notebookId)
+	 			throws NoteNotFoundException,NotebookNotFoundException;
 }

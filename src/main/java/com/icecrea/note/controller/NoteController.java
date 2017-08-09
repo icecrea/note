@@ -49,4 +49,10 @@ public class NoteController extends AbstractController{
          return new JsonResult(success);
      }
      
+     @RequestMapping("/move.do")
+     @ResponseBody
+     public JsonResult moveNote(String noteId, String notebookId) {
+         boolean success = noteService.moveNote(noteId, notebookId);
+         return new JsonResult(success);
+     }
 }

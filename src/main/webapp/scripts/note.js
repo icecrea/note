@@ -13,6 +13,16 @@ $(function(){
     $('#can').on('click','.create-note',addNote);
   //绑定点击保存笔记事件
     $('#save_note').on('click', updateNote);
+
+	//绑定笔记子菜单的触发事件
+	$('#note-list').on('click', '.btn-note-menu', showNoteMenu);
+	//监听整体的文档区域, 任何位置点击都要关闭笔记子菜单
+	$(document).click(hideNoteMenu);
+	
+	//监听笔记子菜单中移动按钮的点击
+	$('#note-list').on('click', '.btn_move', showMoveNoteDialog);
+	//监听移动笔记对话框中的确定按钮
+	$('#can').on('click', '.move-note', moveNote);
 });
 
 /** 加载笔记本列表数据 */
@@ -220,9 +230,96 @@ function updateNote(){
     }
 }
 
+function showNoteMenu(){
+	//找到菜单对象, 调用show() 方法
+    var btn = $(this);
+    //如果当前是被选定的 笔记项目 就弹出子菜单
+	btn.parent('.checked').next().toggle();
+	//btn.parent('.checked') 获取当前按钮的父元素
+    //这个元素必须符合选择器'.checked', 如果不
+    //符合就返回空的JQuery元素.  
+    return false;//阻止点击事件的继续传播!避免传播到document对象时候, 触发关闭菜单事件
+}
+
+/** 关闭笔记子菜单事件处理方法 */
+function hideNoteMenu(){
+    $('.note_menu').hide();
+}
+
+/** 显示移动笔记对话框 */
+function showMoveNoteDialog(){
+    var id = $(document).data('note').id;
+    if(id){
+        $('#can').load('alert/alert_move.html', loadNotebookOptions);
+        $('.opacity_bg').show();
+        return;
+    }
+    alert('必须选择笔记!');
+} 
+
+/** 加载移动笔记对话框中的笔记本列表 */
+function loadNotebookOptions(){
+    var url = 'notebook/list.do';
+    var data={userId:getCookie('userId')};
+    $.getJSON(url, data, function(result){
+        if(result.state==SUCCESS){
+            var notebooks = result.data;
+            //清楚全部的笔记本下拉列表选项
+            //添加新的笔记本列表选项
+            $('#moveSelect').empty();
+            var id=$(document).data('notebookId');
+            for(var i=0; i<notebooks.length; i++){
+                var notebook = notebooks[i];
+                var opt=$('<option></option>')
+                    .val(notebook.id)
+                    .html(notebook.name);
+                //默认选定当时笔记的笔记本ID
+                if(notebook.id==id){
+                    opt.attr('selected','selected');
+                }
+                $('#moveSelect').append(opt);
+            }
+        }else{
+            alert(result.message);
+        }
+    });
+}
+
+/** 移动笔记事件处理方法 */
+function moveNote(){
+
+    var url = 'note/move.do';
+    var id = $(document).data('note').id;
+    var bookId=$('#moveSelect').val();
+    //笔记本ID没有变化, 就不移动了!
+    if(bookId==$(document).data('notebookId')){
+        return;
+    }
+    var data = {noteId:id, notebookId:bookId};
+    $.post(url, data, function(result){
+        if(result.state==SUCCESS){
+            //移动成功, 在当前笔记列表中删除移动的笔记
+            //将笔记列表中的第一个设置为当前笔记, 否则清空边编辑区域
+            var li = $('#note-list .checked').parent();
+            var lis = li.siblings();
+            if(lis.size()>0){
+                lis.eq(0).click();
+            }else{
+                $('#input_note_title').val("");
+                um.setContent("");
+            }
+            li.remove();
+            closeDialog();//关闭对话框!
+        }else{
+            alert(result.message);
+        }
+    });
+}
+
+//重构笔记列表模板, 为笔记子菜单触发按钮添加类 btn-note-menu
 var noteTemplate = '<li class="online note">'+
 '<a>'+
-'<i class="fa fa-file-text-o" title="online" rel="tooltip-bottom"></i> [title]<button type="button" class="btn btn-default btn-xs btn_position btn_slide_down"><i class="fa fa-chevron-down"></i></button>'+
+'<i class="fa fa-file-text-o" title="online" rel="tooltip-bottom"></i> [title]<button type="button" class="btn btn-default btn-xs btn_position btn_slide_down btn-note-menu"><i class="fa fa-chevron-down"></i></button>'+
 '</a>'+
 '<div class="note_menu" tabindex="-1">'+
 '<dl>'+
